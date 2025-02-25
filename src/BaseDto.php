@@ -44,8 +44,7 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
                     if (property_exists($this, $camelKey)) {
                         if (is_subclass_of($currentClass, self::class)) {
                             $this->$camelKey = $currentClass::make($param);
-                        }
-                        elseif (class_exists($currentClass) && (new $currentClass()) instanceof \ArrayAccess) {
+                        } elseif ((class_exists($currentClass) && (new $currentClass()) instanceof \ArrayAccess)) {
                             if (!empty($prop->getAttributes())) {
                                 /** @var \ReflectionAttribute $attribute */
                                 $attribute = head($prop->getAttributes(ToIterable::class));
@@ -62,6 +61,14 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
                             }
 
                             $this->$camelKey = new $currentClass($param);
+                        } elseif (is_array($param)) {
+                            /** @var \ReflectionAttribute $attribute */
+                            $attribute = head($prop->getAttributes(ToIterable::class));
+                            $result = [];
+                            foreach ($param as $item) {
+                                $result[] = $attribute->newInstance()->type::make($item);
+                            }
+                            $this->$camelKey = $result;
                         } else {
                             $this->$camelKey = $param;
                         }
