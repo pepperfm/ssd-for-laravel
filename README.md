@@ -12,17 +12,17 @@ No hidden transformations or data mutations.
 Clean, readable, and intuitive code.
 Just a simple class to map your data, following the KISS💋 principle.
 
+> [!TIP]
+> <a href="https://docs.pepperfm.com/simple-slim-dto" target="_blank">Full Package Description</a>
+
 ## Installation
-
-You can install the package via composer:
-
 ```bash
 composer r pepperfm/ssd-for-laravel
 ```
 
 ## Usage
 
-Extends your class from BaseDto and describe your data
+Extends your class from BaseDto and define your data
 ```php
 class ResponseWrapperDto extends BaseDto
 {
@@ -35,7 +35,7 @@ class ResponseWrapperDto extends BaseDto
 ```
 
 ### Base case
-Then you can create the object like this:
+You can create the object like this:
 ```php
 ResponseWrapperDto::make([
     'data' => $response['data'],
