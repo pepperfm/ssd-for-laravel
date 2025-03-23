@@ -7,7 +7,7 @@ namespace Pepperfm\Ssd;
 use Illuminate\Support\Arr;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
-use Pepperfm\Ssd\Attributes\ToIterable;
+use Pepperfm\Ssd\Attributes\{ToIterable, MapName};
 
 abstract class BaseDto implements Arrayable, \JsonSerializable
 {
@@ -35,12 +35,17 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
             $camelKey = str($key)->camel()->value();
 
             $r = new \ReflectionClass($this);
+            foreach ($r->getProperties() as $property) {
+                foreach ($property->getAttributes(MapName::class) as $attribute) {
+                    $mappedName = $attribute->newInstance()->name;
+                    $this->$mappedName = $param;
+                    unset($params[$key]);
+                }
+            }
             if ($r->hasProperty($camelKey)) {
                 $prop = $r->getProperty($camelKey);
-
                 if ($prop->getType()) {
                     $currentClass = $prop->getType()->getName();
-
                     if (property_exists($this, $camelKey)) {
                         if (is_subclass_of($currentClass, self::class)) {
                             $this->$camelKey = $currentClass::make($param);

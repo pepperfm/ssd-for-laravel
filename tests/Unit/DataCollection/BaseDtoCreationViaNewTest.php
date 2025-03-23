@@ -67,7 +67,6 @@ test('object creation', function ($testResponse) {
 });
 
 test('object creation unwrapped', function ($testResponse) {
-
     $data = new ResponseWrapperWithDataCollectionDto(
         data: data_get($testResponse, 'data'),
         links: data_get($testResponse, 'links'),
