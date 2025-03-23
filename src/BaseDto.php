@@ -70,11 +70,12 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
                             /** @var \ReflectionAttribute $attribute */
                             $attribute = head($prop->getAttributes(ToIterable::class));
                             $result = [];
-                            foreach ($param as $item) {
+                            foreach ($param as $paramKey => $item) {
                                 if ($attribute && filled($attribute)) {
-                                    $result[] = $attribute->newInstance()->type::make($item);
+                                    $result[$paramKey] = $attribute->newInstance()->type::make($item);
+                                } else {
+                                    $result[$paramKey] = $item;
                                 }
-                                $result[] = $item;
                             }
                             $this->$camelKey = $result;
                         } else {
