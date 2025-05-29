@@ -13,8 +13,6 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
 {
     /**
      * @param array|\Illuminate\Contracts\Support\Arrayable|\stdClass $params
-     *
-     * @throws \ReflectionException
      */
     public function __construct(array|\stdClass ...$params)
     {
