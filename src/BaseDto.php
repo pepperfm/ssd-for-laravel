@@ -12,10 +12,13 @@ use Pepperfm\Ssd\Attributes\{ToIterable, MapName};
 abstract class BaseDto implements Arrayable, \JsonSerializable
 {
     /**
-     * @param array|\Illuminate\Contracts\Support\Arrayable|\stdClass $params
+     * @param mixed $params
      */
-    public function __construct(array|\stdClass ...$params)
+    public function __construct(mixed ...$params)
     {
+        if (gettype($params) !== 'array') {
+            throw new \InvalidArgumentException('Cant spread param type');
+        }
         if (count($params) === 1) {
             if (is_array($params[0])) {
                 $params = $params[0];
@@ -25,9 +28,11 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
                 // }
                 $params = (array) $params[0];
             }
-        } elseif (count($params) > 1) {
-            $params = array_combine(array_map('strtolower', array_keys($params)), array_values($params));
         }
+        // check this
+        //  elseif (count($params) > 1) {
+        //     $params = array_combine(array_map('strtolower', array_keys($params)), array_values($params));
+        // }
 
         foreach ($params as $key => $param) {
             $camelKey = str($key)->camel()->value();
@@ -85,9 +90,6 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
         }
     }
 
-    /**
-     * @throws \ReflectionException
-     */
     public static function make(...$params): static
     {
         return new static(...$params);
@@ -113,8 +115,6 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
      *
      * @template TKey of int
      * @template TValue
-     *
-     * @throws \ReflectionException
      *
      * @return Collection<TKey, TValue>
      */
