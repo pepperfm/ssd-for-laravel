@@ -7,7 +7,7 @@ namespace Pepperfm\Ssd;
 use Illuminate\Support\Arr;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
-use Pepperfm\Ssd\Attributes\{ToIterable, MapName};
+use Pepperfm\Ssd\Attributes\{SnakeCaseProperties, ToIterable, MapName};
 
 abstract class BaseDto implements Arrayable, \JsonSerializable
 {
@@ -34,10 +34,12 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
         //     $params = array_combine(array_map('strtolower', array_keys($params)), array_values($params));
         // }
 
+        $r = new \ReflectionClass($this);
+        // if (!empty($r->getAttributes(SnakeCaseProperties::class))) {
+        //     $this::$propertyCase = 'snake';
+        // }
         foreach ($params as $key => $param) {
-            $camelKey = str($key)->camel()->value();
-
-            $r = new \ReflectionClass($this);
+            $caseKey = str($key)->camel()->value();
             foreach ($r->getProperties() as $property) {
                 foreach ($property->getAttributes(MapName::class) as $attribute) {
                     $mappedName = $attribute->newInstance()->name;
@@ -45,13 +47,13 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
                     unset($params[$key]);
                 }
             }
-            if ($r->hasProperty($camelKey)) {
-                $prop = $r->getProperty($camelKey);
+            if ($r->hasProperty($caseKey)) {
+                $prop = $r->getProperty($caseKey);
                 if ($prop->getType()) {
                     $currentClass = $prop->getType()->getName();
-                    if (property_exists($this, $camelKey)) {
+                    if (property_exists($this, $caseKey)) {
                         if (is_subclass_of($currentClass, self::class)) {
-                            $this->$camelKey = $currentClass::make($param);
+                            $this->$caseKey = $currentClass::make($param);
                         } elseif ((class_exists($currentClass) && (new $currentClass()) instanceof \ArrayAccess)) {
                             if (!empty($prop->getAttributes())) {
                                 /** @var \ReflectionAttribute $attribute */
@@ -61,14 +63,14 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
                                     $result[] = $attribute->newInstance()->type::make($item);
                                 }
                                 if ($castType = $attribute->newInstance()->castType) {
-                                    $this->$camelKey = new $castType($result);
+                                    $this->$caseKey = new $castType($result);
                                     continue;
                                 }
-                                $this->$camelKey = new $currentClass($result);
+                                $this->$caseKey = new $currentClass($result);
                                 continue;
                             }
 
-                            $this->$camelKey = new $currentClass($param);
+                            $this->$caseKey = new $currentClass($param);
                         } elseif (is_array($param)) {
                             /** @var \ReflectionAttribute $attribute */
                             $attribute = head($prop->getAttributes(ToIterable::class));
@@ -80,9 +82,9 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
                                     $result[$paramKey] = $item;
                                 }
                             }
-                            $this->$camelKey = $result;
+                            $this->$caseKey = $result;
                         } else {
-                            $this->$camelKey = $param;
+                            $this->$caseKey = $param;
                         }
                     }
                 }
@@ -102,9 +104,9 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
      */
     public function __get(string $name)
     {
-        $camelKey = str($name)->camel()->value();
-        if (property_exists($this, $camelKey)) {
-            return $this->$camelKey;
+        $caseKey = str($name)->camel()->value();
+        if (property_exists($this, $caseKey)) {
+            return $this->$caseKey;
         }
 
         throw new \OutOfBoundsException("Property $name does not exist in " . $this::class);
@@ -135,8 +137,8 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
     {
         $array = [];
         foreach ((array) $this as $key => $item) {
-            $snakeKey = str($key)->snake()->replaceMatches('/([^\d])(\d++)/', '\1_\2')->value();
-            $array[$snakeKey] = $item;
+            $caseKey = str($key)->camel()->replaceMatches('/([^\d])(\d++)/', '\1_\2')->value();
+            $array[$caseKey] = $item;
         }
 
         return $array;
