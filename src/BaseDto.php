@@ -23,10 +23,11 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
             if (is_array($params[0])) {
                 $params = $params[0];
             } else {
-                // if (!$params[0] instanceof \stdClass) {
-                //     throw new \OutOfBoundsException('omg');
-                // }
-                $params = (array) $params[0];
+                if ($params[0] instanceof Arrayable) {
+                    $params = $params[0]->toArray();
+                } else {
+                    $params = (array) $params[0];
+                }
             }
         }
         // check this
