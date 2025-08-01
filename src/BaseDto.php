@@ -22,12 +22,10 @@ abstract class BaseDto implements Arrayable, \JsonSerializable
         if (count($params) === 1) {
             if (is_array($params[0])) {
                 $params = $params[0];
+            } elseif ($params[0] instanceof Arrayable) {
+                $params = $params[0]->toArray();
             } else {
-                if ($params[0] instanceof Arrayable) {
-                    $params = $params[0]->toArray();
-                } else {
-                    $params = (array) $params[0];
-                }
+                $params = (array) $params[0];
             }
         }
         // check this
